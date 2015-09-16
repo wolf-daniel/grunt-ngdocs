@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  */
 
-var reader = require('../src/reader.js'),
+var Reader = require('../src/reader.js'),
     ngdoc = require('../src/ngdoc.js'),
     path = require('path'),
     vm = require('vm');
@@ -20,6 +20,8 @@ var repohosts = [
 ];
 
 module.exports = function(grunt) {
+  var reader = new Reader(grunt);
+
   var _ = grunt.util._,
       unittest = {},
       templates = path.resolve(__dirname, '../src/templates');
@@ -48,9 +50,9 @@ module.exports = function(grunt) {
     var gruntScriptsFolder = 'grunt-scripts';
     var gruntStylesFolder = 'grunt-styles';
 
-  	// If the options.script is an array of arrays ( useful when working with variables, for example: ['<%= vendor_files %>','<%= app_files %>'] )
-  	// convert to a single array with _.flatten ( http://underscorejs.org/#flatten )
-  	options.scripts = _.flatten(options.scripts);
+    // If the options.script is an array of arrays ( useful when working with variables, for example: ['<%= vendor_files %>','<%= app_files %>'] )
+    // convert to a single array with _.flatten ( http://underscorejs.org/#flatten )
+    options.scripts = _.flatten(options.scripts);
     options.scripts = _.map(options.scripts, function(file) {
       if (file === 'angular.js') {
         return 'js/angular.min.js';
@@ -138,22 +140,22 @@ module.exports = function(grunt) {
   }
 
   function makeLinkFn(tmpl, values) {
-      if (!tmpl || tmpl === true) { return false; }
-      if (/\{\{\s*sha\s*\}\}/.test(tmpl)) {
-        var shell = require('shelljs');
-        var sha = shell.exec('git rev-parse HEAD', { silent: true });
-        values.sha = ('' + sha.output).slice(0, 7);
-      }
-      tmpl = _.template(tmpl, undefined, {'interpolate': /\{\{(.+?)\}\}/g});
-      return function(file, line, codeline) {
-        values.file = file;
-        values.line = line;
-        values.codeline = codeline;
-        values.filepath = path.dirname(file);
-        values.filename = path.basename(file);
-        return tmpl(values);
-      };
+    if (!tmpl || tmpl === true) { return false; }
+    if (/\{\{\s*sha\s*\}\}/.test(tmpl)) {
+      var shell = require('shelljs');
+      var sha = shell.exec('git rev-parse HEAD', { silent: true });
+      values.sha = ('' + sha.output).slice(0, 7);
     }
+    tmpl = _.template(tmpl, undefined, {'interpolate': /\{\{(.+?)\}\}/g});
+    return function(file, line, codeline) {
+      values.file = file;
+      values.line = line;
+      values.codeline = codeline;
+      values.filepath = path.dirname(file);
+      values.filename = path.basename(file);
+      return tmpl(values);
+    };
+  }
 
   function prepareLinks(pkg, options) {
     var values = {version: pkg.version || 'master'};
@@ -241,10 +243,10 @@ module.exports = function(grunt) {
       var src = f.src[0],
           dest = f.dest;
       if (grunt.file.isDir(src)) {
-          grunt.file.mkdir(dest);
-        } else {
-          grunt.file.copy(src, dest);
-        }
+        grunt.file.mkdir(dest);
+      } else {
+        grunt.file.copy(src, dest);
+      }
     });
   }
 
@@ -256,7 +258,7 @@ module.exports = function(grunt) {
     var html = partials.map(function(partial){
       // Get the partial content and replace the closing script tags with a placeholder
       var partialContent = grunt.file.read(path.join(indexFolder, partial))
-        .replace(/<\/script>/g, '<___/script___>');
+          .replace(/<\/script>/g, '<___/script___>');
       return '<script type="text/ng-template" id="' + partial + '">' + partialContent + '<' + '/script>';
     }).join('');
     // During page initialization replace the placeholder back to the closing script tag

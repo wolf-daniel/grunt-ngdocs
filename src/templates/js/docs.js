@@ -530,7 +530,7 @@ function module(name, modules, optional) {
   return angular.module(name, modules);
 }
 
-module('docsApp', ['bootstrap', 'bootstrapPrettify'], ['ngAnimate']).
+module('docsApp', ['bootstrap', 'bootstrapPrettify']).
   config(function($locationProvider) {
     if (NG_DOCS.html5Mode) {
       $locationProvider.html5Mode(true).hashPrefix('!');
