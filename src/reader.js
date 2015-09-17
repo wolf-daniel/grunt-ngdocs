@@ -3,7 +3,8 @@
  */
 var path = require('path');
 var ngdoc = require('./ngdoc.js'),
-    NEW_LINE = /\n\r?/;
+    NEW_LINE = /\n\r?/,
+    DEFAULT_EXAMPLES_DIR = 'examples';
 
 module.exports = Reader;
 
@@ -54,7 +55,9 @@ function Reader(grunt) {
       }
 
       if (inDoc && (match = line.match(/@external-example:(.+)/))) {
-        handleExternalExample(line, match, text, options);
+        if (match && match.length > 1) {
+          handleExternalExample(line, match, text, options);
+        }
       }
 
       // is the comment add text
@@ -66,17 +69,18 @@ function Reader(grunt) {
   }
 
   function handleExternalExample(line, match, text, options) {
-    var exampleName = '';
-    var exampleDir = '';
-    if (match && match.length > 1 && options.examplesDir) {
-      exampleName = match[1];
-      var exampleDirs = grunt.file.expand(options.examplesDir + '/**/' + exampleName);
-      if (exampleDirs && exampleDirs.length) {
-        exampleDir = path.resolve(exampleDirs[0]);
-      }
-    }
+    var baseExampleDir = options.examplesDir || DEFAULT_EXAMPLES_DIR;
 
+    var exampleName = match[1];
+    var exampleDir = '';
     var exampleContent = '';
+
+    var pattern = baseExampleDir + '/**/' + exampleName.replace(/\./g, '/');
+    var exampleDirs = grunt.file.expand(pattern);
+
+    if (exampleDirs && exampleDirs.length) {
+      exampleDir = path.resolve(exampleDirs[0]);
+    }
 
     if (exampleDir && grunt.file.exists(exampleDir) && grunt.file.isDir(exampleDir)) {
       grunt.file.recurse(exampleDir, function(fileAbsPath, rootDir, fileDir, fileName) {
