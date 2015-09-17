@@ -42,8 +42,9 @@ function Reader(grunt) {
         text = [];
         startingLine = lineNumber;
       }
+
       // are we done?
-      if (inDoc && line.match(/\*\//)) {
+      else if (inDoc && line.match(/\*\//)) {
         text = text.join('\n');
         text = text.replace(/^\n/, '');
         if (text.match(/@ngdoc/)){
@@ -54,14 +55,14 @@ function Reader(grunt) {
         inDoc = false;
       }
 
-      if (inDoc && (match = line.match(/@external-example:(.+)/))) {
+      else if (inDoc && (match = line.match(/@external-example:(.+)/))) {
         if (match && match.length > 1) {
           handleExternalExample(line, match, text, options);
         }
       }
 
       // is the comment add text
-      if (inDoc){
+      else if (inDoc){
         text.push(line.replace(/^\s*\*\s?/, ''));
       }
     });
